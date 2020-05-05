@@ -1,0 +1,13 @@
+webform_summary.settings:
+  type: config_object
+  label: 'Webform summary settings'
+  mapping:
+    webform_submissions_email:
+      type: string
+      label: 'The webform submissions email.'
+    webform_submissions_sender:
+      type: string
+      label: 'The webform sender email.'
+    webform_submissions_mode:
+      type: string
+      label: 'The webform submission mode.'

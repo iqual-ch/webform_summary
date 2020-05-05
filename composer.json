@@ -1,0 +1,9 @@
+{
+    "name": "iqual/webform_summary",
+    "description": "This modules provides methods to deliver webform summaries.",
+    "type": "drupal-custom-module",
+    "minimum-stability": "dev",
+    "require": {
+        "drupal/webform": "*"
+    }
+}

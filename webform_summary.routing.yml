@@ -1,0 +1,9 @@
+webform_summary.settings:
+  path: '/structure/webform/webform_summary'
+  defaults:
+    _form: '\Drupal\webform_summary\Form\ConfigurationForm'
+    _title: 'Webform summary settings'
+  requirements:
+    _permission: 'webform_summary'
+  options:
+    _admin_route: TRUE

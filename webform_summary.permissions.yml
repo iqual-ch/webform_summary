@@ -1,0 +1,4 @@
+webform_summary:
+  title: 'Manage webform summary settings'
+  description: 'Set up email summaries for the webform submissions'
+  restrict access: TRUE
