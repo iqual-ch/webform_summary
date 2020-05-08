@@ -54,7 +54,6 @@ class Mailer {
    */
   protected $useFallback = TRUE;
 
-  protected $time = 0;
 
   /**
    * {@inheritdoc}
@@ -77,7 +76,6 @@ class Mailer {
     $this->submissionExporter = $submissionExporter;
     $this->rangeStart = (new \DateTime('today'));
     $this->rangeEnd = (new \DateTime('today'));
-    $this->time = time();
   }
 
   /**
@@ -162,7 +160,7 @@ class Mailer {
             }
           }
         }
-        if (!$hasHandler && FALSE) {
+        if (!$hasHandler) {
           continue;
         }
       }
@@ -202,7 +200,6 @@ class Mailer {
         }
       }
     }
-    echo (time() - $this->time);
     return $mails;
   }
 
@@ -213,8 +210,6 @@ class Mailer {
    *   The mail info.
    */
   protected function sendMails($mails) {
-    print_r($mails);
-    return;
     foreach ($mails as $recipient => $files) {
       $params = ['attachments' => [], 'subject' => 'Webform summary'];
       foreach ($files as $delta => $file) {
