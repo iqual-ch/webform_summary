@@ -11,7 +11,7 @@ function webform_summary_cron() {
   $lastExecution = (int) \Drupal::state()->get('webform_summary.last_execution');
   $lastExecutionDay = date('z', $lastExecution);
   $currentDay = date('z', \Drupal::time()->getRequestTime());
-  if (date('Y') > date('Y', $lastExecution)) {
+  if (date('Y', \Drupal::time()->getRequestTime()) > date('Y', $lastExecution)) {
     $lastExecutionDay = -1;
   }
   if ($currentDay > $lastExecutionDay) {
