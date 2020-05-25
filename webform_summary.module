@@ -21,7 +21,6 @@ function webform_summary_cron() {
     $mailer = \Drupal::service('webform_summary.mailer');
     $mailer->setStartDate($startDate);
     $mailer->setEndDate($endDate);
-    $mailer->useFallback(FALSE);
     $mailer->run();
     \Drupal::state()->set('webform_summary.last_execution', \Drupal::time()->getRequestTime());
   }
