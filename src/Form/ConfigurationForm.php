@@ -37,6 +37,20 @@ class ConfigurationForm extends ConfigFormBase {
       '#element_validate' => ['::validateReturnPath', ['\Drupal\Core\Render\Element\Email', 'validateEmail']],
       '#default_value' => $config->get('webform_submissions_sender'),
     ];
+    $form['webform_submissions_subject'] = [
+      '#title' => $this->t('Webform summary subject line'),
+      '#type' => 'textfield',
+      '#description' => $this->t('Subject line for the daily summary mail.'),
+      '#required' => TRUE,
+      '#default_value' => $config->get('webform_submissions_subject'),
+    ];
+    $form['webform_submissions_body'] = [
+      '#title' => $this->t('Webform summary body content'),
+      '#type' => 'textarea',
+      '#description' => $this->t('Body content for the daily summary mail.'),
+      '#required' => FALSE,
+      '#default_value' => $config->get('webform_submissions_body'),
+    ];
     $form['webform_submissions_email'] = [
       '#title' => $this->t('Webform summary fallback email'),
       '#type' => 'email',
@@ -61,6 +75,8 @@ class ConfigurationForm extends ConfigFormBase {
     $this->config('webform_summary.settings')
       ->set('webform_submissions_email', $form_state->getValue('webform_submissions_email'))
       ->set('webform_submissions_sender', $form_state->getValue('webform_submissions_sender'))
+      ->set('webform_submissions_subject', $form_state->getValue('webform_submissions_subject'))
+      ->set('webform_submissions_body', $form_state->getValue('webform_submissions_body'))
       ->save();
   }
 
