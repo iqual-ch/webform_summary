@@ -38,9 +38,9 @@ function webform_summary_mail($key, &$message, $params) {
       $message['headers']['From'] = $from;
       $message['headers']['Sender'] = $from;
       $message['headers']['Return-Path'] = $from;
-      $message['subject'] = t($settings->get('webform_submissions_subject'));
+      $message['subject'] = $settings->get('webform_submissions_subject');
       $body = (empty($settings->get('webform_submissions_body'))) ? $settings->get('webform_submissions_subject') : $settings->get('webform_submissions_body');
-      $message['body'][] = t($body);
+      $message['body'][] = $body;
       break;
   }
 }
