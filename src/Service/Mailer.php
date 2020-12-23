@@ -64,7 +64,6 @@ class Mailer {
     'serial' => 'serial',
     'sid' => 'sid',
     'uri' => 'uri',
-    'created' => 'created',
     'completed' => 'completed',
     'changed' => 'changed',
     'in_draft' => 'in_draft',
