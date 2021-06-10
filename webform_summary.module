@@ -4,6 +4,9 @@
  * @file
  */
 
+use \Drupal\Core\Datetime\DrupalDateTime;
+use \Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+
 /**
  * Implements hook_cron().
  */
@@ -19,6 +22,8 @@ function webform_summary_cron() {
     $endDate = new DateTime('1 days ago');
     \Drupal::logger('webform_summary')->notice('Sending webform summaries between ' . $startDate->format('Y/m/d') . ' and  ' . $endDate->format('Y/m/d'));
     $mailer = \Drupal::service('webform_summary.mailer');
+    $nonClosedWebformIds = _webform_summary_collect_open_webforms_ids();
+    $mailer->setWebformIds($nonClosedWebformIds);
     $mailer->setStartDate($startDate);
     $mailer->setEndDate($endDate);
     $mailer->run();
@@ -43,4 +48,18 @@ function webform_summary_mail($key, &$message, $params) {
       $message['body'][] = $body;
       break;
   }
+}
+
+/**
+ * Collects all open webforms or scheduled webforms with a future closing date.
+ */
+function _webform_summary_collect_open_webforms_ids() {
+  $now = new DrupalDateTime('now');
+  // Collect all non-closed (open or scheduled) webforms.
+  $query = \Drupal::entityQuery('webform')
+    ->condition('status', 'closed', '<>');
+  $group = $query->orConditionGroup()
+    ->condition('status', 'open')
+    ->condition('close', $now->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT), '>=');    
+  return $query->condition($group)->execute();
 }
