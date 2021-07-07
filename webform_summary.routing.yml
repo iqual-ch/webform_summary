@@ -4,6 +4,6 @@ webform_summary.settings:
     _form: '\Drupal\webform_summary\Form\ConfigurationForm'
     _title: 'Webform summary settings'
   requirements:
-    _permission: 'webform_summary'
+    _permission: 'webform_summary_manage'
   options:
     _admin_route: TRUE
