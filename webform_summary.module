@@ -4,13 +4,17 @@
  * @file
  */
 
-use \Drupal\Core\Datetime\DrupalDateTime;
-use \Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 
 /**
  * Implements hook_cron().
  */
 function webform_summary_cron() {
+  $mailerDisabled = \Drupal::config('webform_summary.settings')->get('webform_submissions_disable');
+  if ($mailerDisabled) {
+    return;
+  }
   $lastExecution = (int) \Drupal::state()->get('webform_summary.last_execution');
   $lastExecutionDay = date('z', $lastExecution);
   $currentDay = date('z', \Drupal::time()->getRequestTime());
@@ -60,6 +64,6 @@ function _webform_summary_collect_open_webforms_ids() {
     ->condition('status', 'closed', '<>');
   $group = $query->orConditionGroup()
     ->condition('status', 'open')
-    ->condition('close', $now->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT), '>=');    
+    ->condition('close', $now->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT), '>=');
   return $query->condition($group)->execute();
 }

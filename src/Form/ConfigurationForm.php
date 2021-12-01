@@ -59,6 +59,13 @@ class ConfigurationForm extends ConfigFormBase {
       '#element_validate' => ['::validateReturnPath', ['\Drupal\Core\Render\Element\Email', 'validateEmail']],
       '#default_value' => $config->get('webform_submissions_email'),
     ];
+    $form['webform_submissions_disable'] = [
+      '#title' => $this->t('Globally disable webform summary'),
+      '#type' => 'checkbox',
+      '#description' => $this->t('Globally disable webform summary'),
+      '#required' => FALSE,
+      '#default_value' => $config->get('webform_submissions_disable'),
+    ];
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = [
       '#type' => 'submit',
@@ -77,6 +84,7 @@ class ConfigurationForm extends ConfigFormBase {
       ->set('webform_submissions_sender', $form_state->getValue('webform_submissions_sender'))
       ->set('webform_submissions_subject', $form_state->getValue('webform_submissions_subject'))
       ->set('webform_submissions_body', $form_state->getValue('webform_submissions_body'))
+      ->set('webform_submissions_disable', $form_state->getValue('webform_submissions_disable'))
       ->save();
   }
 
