@@ -61,12 +61,12 @@ function webform_summary_mail($key, &$message, $params)
  */
 function _webform_summary_collect_open_webforms_ids()
 {
-  $now = new DrupalDateTime('now');
+  $date = new DrupalDateTime('one day ago');
   // Collect all non-closed (open or scheduled) webforms.
   $query = \Drupal::entityQuery('webform')
     ->condition('status', 'closed', '<>');
   $group = $query->orConditionGroup()
     ->condition('status', 'open')
-    ->condition('close', $now->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT), '>=');
+    ->condition('close', $date->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT), '>=');
   return $query->condition($group)->execute();
 }
