@@ -88,7 +88,7 @@ function webform_summary_webform_update(Webform $entity)
  */
 function _webform_summary_collect_open_webforms_ids()
 {
-  $date = new DrupalDateTime('a day ago');
+  $date = new DrupalDateTime('1 day ago');
   // Collect all non-closed (open or scheduled) webforms.
   $query = \Drupal::entityQuery('webform')
     ->condition('status', 'closed', '<>');
