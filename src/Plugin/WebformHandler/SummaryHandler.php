@@ -19,12 +19,14 @@ use Drupal\webform\WebformSubmissionInterface;
  * )
  * @package Drupal\wks_custom\Plugin\WebformHandler
  */
-class SummaryHandler extends WebformHandlerBase {
+class SummaryHandler extends WebformHandlerBase
+{
 
   /**
    * {@inheritdoc}
    */
-  public function getSummary() {
+  public function getSummary()
+  {
     // Return [
     //   '#settings' => ['settings' => [$this->t('Recipient email address') => $this->configuration['recipient_mail']]],
     //   '#theme' => 'webform_handler_settings_summary',
@@ -39,7 +41,8 @@ class SummaryHandler extends WebformHandlerBase {
   /**
    * {@inheritdoc}
    */
-  public function defaultConfiguration() {
+  public function defaultConfiguration()
+  {
     return [
       'recipient_mail' => '',
       'excluded_elements' => [],
@@ -50,7 +53,8 @@ class SummaryHandler extends WebformHandlerBase {
   /**
    * {@inheritdoc}
    */
-  public function setConfiguration(array $configuration) {
+  public function setConfiguration(array $configuration)
+  {
     parent::setConfiguration($configuration);
 
     // Make sure 'default' is converted to '_default'.
@@ -59,9 +63,11 @@ class SummaryHandler extends WebformHandlerBase {
     // @todo Webform 8.x-6.x: Remove the below code.
     $default_configuration = $this->defaultConfiguration();
     foreach ($this->configuration as $key => $value) {
-      if ($value === 'default'
+      if (
+        $value === 'default'
         && isset($default_configuration[$key])
-        && $default_configuration[$key] === static::DEFAULT_VALUE) {
+        && $default_configuration[$key] === static::DEFAULT_VALUE
+      ) {
         $this->configuration[$key] = static::DEFAULT_VALUE;
       }
     }
@@ -72,7 +78,8 @@ class SummaryHandler extends WebformHandlerBase {
   /**
    * {@inheritDoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state)
+  {
     $form['general'] = [
       '#type' => 'details',
       '#title' => $this->t('General settings'),
@@ -117,7 +124,8 @@ class SummaryHandler extends WebformHandlerBase {
   /**
    * {@inheritdoc}
    */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state)
+  {
     if ($form_state->hasAnyErrors()) {
       return;
     }
@@ -129,7 +137,8 @@ class SummaryHandler extends WebformHandlerBase {
   /**
    * {@inheritdoc}
    */
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state)
+  {
     parent::submitConfigurationForm($form, $form_state);
 
     $values = $form_state->getValues();
@@ -140,8 +149,7 @@ class SummaryHandler extends WebformHandlerBase {
         // @see https://www.drupal.org/node/2297311
         if (preg_match('/_options$/', $name)) {
           $this->configuration[$name] = WebformOptionsHelper::encodeConfig($values[$name]);
-        }
-        else {
+        } else {
           $this->configuration[$name] = $values[$name];
         }
       }
@@ -151,8 +159,8 @@ class SummaryHandler extends WebformHandlerBase {
   /**
    * {@inheritdoc}
    */
-  public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE) {
+  public function postSave(WebformSubmissionInterface $webform_submission, $update = TRUE)
+  {
     return TRUE;
   }
-
 }

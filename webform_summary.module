@@ -10,7 +10,8 @@ use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 /**
  * Implements hook_cron().
  */
-function webform_summary_cron() {
+function webform_summary_cron()
+{
   $mailerDisabled = \Drupal::config('webform_summary.settings')->get('webform_submissions_disable');
   if ($mailerDisabled) {
     return;
@@ -38,7 +39,8 @@ function webform_summary_cron() {
 /**
  * Implements hook_mail().
  */
-function webform_summary_mail($key, &$message, $params) {
+function webform_summary_mail($key, &$message, $params)
+{
   switch ($key) {
     case "webform_summary_csv":
       $settings = \Drupal::config('webform_summary.settings');
@@ -57,7 +59,8 @@ function webform_summary_mail($key, &$message, $params) {
 /**
  * Collects all open webforms or scheduled webforms with a future closing date.
  */
-function _webform_summary_collect_open_webforms_ids() {
+function _webform_summary_collect_open_webforms_ids()
+{
   $now = new DrupalDateTime('now');
   // Collect all non-closed (open or scheduled) webforms.
   $query = \Drupal::entityQuery('webform')
