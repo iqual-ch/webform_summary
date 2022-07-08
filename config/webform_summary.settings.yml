@@ -1,6 +1,6 @@
-webform_submissions_email: ph.vonbergen@iqual.ch
-webform_submissions_sender: noreply@transgourmet.ch
-webform_submissions_subject: 'Aktuelle Zusammenfassungen - Digitale Formulare'
+webform_submissions_email: ''
+webform_submissions_sender: ''
+webform_submissions_subject: 'Webform summary'
 webform_submissions_body: ''
 webform_close_send_data: 1
 webform_submissions_disable: 0
