@@ -8,6 +8,12 @@ webform_summary.settings:
     webform_submissions_sender:
       type: string
       label: "The webform sender email."
-    webform_submissions_mode:
+    webform_submissions_subject:
       type: string
-      label: "The webform submission mode."
+      label: "The webform submission subject."
+    webform_close_send_data:
+      type: boolean
+      label: "Whether to send data on close/archive/delete."
+    webform_submissions_disable:
+      type: boolean
+      label: "Whether to disable sending emails."

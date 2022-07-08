@@ -282,7 +282,10 @@ class Mailer
           ];
         }
       }
-
+      $mailerDisabled = \Drupal::config('webform_summary.settings')->get('webform_submissions_disable');
+      if ($mailerDisabled) {
+        return;
+      }
       if (!empty($params['attachments'])) {
         $fileList = implode(', ', array_column($files, 'name'));
         if ($this->mailManager->mail('webform_summary', 'webform_summary_csv', $recipient, 'en', $params)) {
