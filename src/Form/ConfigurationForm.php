@@ -63,6 +63,13 @@ class ConfigurationForm extends ConfigFormBase
       '#element_validate' => ['::validateReturnPath', ['\Drupal\Core\Render\Element\Email', 'validateEmail']],
       '#default_value' => $config->get('webform_submissions_email'),
     ];
+    $form['webform_close_send_data'] = [
+      '#title' => $this->t('Send data when closing, deleting or archiving a webform'),
+      '#type' => 'checkbox',
+      '#description' => $this->t('Will send the data every time a webform is closed or archived or when it is deleted.'),
+      '#required' => TRUE,
+      '#default_value' => $config->get('webform_close_send_data'),
+    ];
     $form['webform_submissions_disable'] = [
       '#title' => $this->t('Globally disable webform summary'),
       '#type' => 'checkbox',
@@ -89,6 +96,7 @@ class ConfigurationForm extends ConfigFormBase
       ->set('webform_submissions_sender', $form_state->getValue('webform_submissions_sender'))
       ->set('webform_submissions_subject', $form_state->getValue('webform_submissions_subject'))
       ->set('webform_submissions_body', $form_state->getValue('webform_submissions_body'))
+      ->set('webform_close_send_data', $form_state->getValue('webform_close_send_data'))
       ->set('webform_submissions_disable', $form_state->getValue('webform_submissions_disable'))
       ->save();
   }
