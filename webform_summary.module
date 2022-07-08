@@ -61,7 +61,8 @@ function webform_summary_mail($key, &$message, $params)
  */
 function webform_summary_webform_delete(Webform $entity)
 {
-  if ($entity->status()) {
+  $sendOnCloseEnabled = \Drupal::config('webform_summary.settings')->get('webform_close_send_data');
+  if ($sendOnCloseEnabled && $entity->status()) {
     _webform_summary_send_data([$entity->id()]);
   }
 }
@@ -73,7 +74,8 @@ function webform_summary_webform_delete(Webform $entity)
  */
 function webform_summary_webform_update(Webform $entity)
 {
-  if (($entity->original->status() && !$entity->status())) {
+  $sendOnCloseEnabled = \Drupal::config('webform_summary.settings')->get('webform_close_send_data');
+  if ($sendOnCloseEnabled && $entity->original->status() && !$entity->status()) {
     _webform_summary_send_data([$entity->id()]);
   }
 }
