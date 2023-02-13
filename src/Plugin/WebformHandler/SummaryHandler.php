@@ -94,28 +94,27 @@ class SummaryHandler extends WebformHandlerBase
       '#required' => TRUE,
       '#maxlength' => 500,
     ];
-    if ($_SERVER['REMOTE_ADDR'] == '83.150.28.13') {
-      // Elements.
-      $form['elements'] = [
-        '#type' => 'details',
-        '#title' => $this->t('Included email values/markup'),
-        '#description' => $this->t('The selected elements will be included in the [webform_submission:values] token. Individual values may still be printed if explicitly specified as a [webform_submission:values:?] in the email body template.'),
-        '#open' => $this->configuration['excluded_elements'] ? TRUE : FALSE,
-      ];
-      $form['elements']['metadata'] = [
-        '#type' => 'checkbox',
-        '#title' => $this->t('Include metadata'),
-        '#description' => $this->t('If checked, metadata fields are included.'),
-        '#return_value' => TRUE,
-        '#default_value' => $this->configuration['metadata'],
-      ];
-      $form['elements']['excluded_elements'] = [
-        '#type' => 'webform_excluded_elements',
-        '#exclude_markup' => FALSE,
-        '#webform_id' => $this->webform->id(),
-        '#default_value' => $this->configuration['excluded_elements'],
-      ];
-    }
+
+    // Elements.
+    $form['elements'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Included email values/markup'),
+      '#description' => $this->t('The selected elements will be included in the [webform_submission:values] token. Individual values may still be printed if explicitly specified as a [webform_submission:values:?] in the email body template.'),
+      '#open' => $this->configuration['excluded_elements'] ? TRUE : FALSE,
+    ];
+    $form['elements']['metadata'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Include metadata'),
+      '#description' => $this->t('If checked, metadata fields are included.'),
+      '#return_value' => TRUE,
+      '#default_value' => $this->configuration['metadata'],
+    ];
+    $form['elements']['excluded_elements'] = [
+      '#type' => 'webform_excluded_elements',
+      '#exclude_markup' => FALSE,
+      '#webform_id' => $this->webform->id(),
+      '#default_value' => $this->configuration['excluded_elements'],
+    ];
 
     $this->elementTokenValidate($form);
     return $this->setSettingsParents($form);
