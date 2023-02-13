@@ -4,6 +4,7 @@ namespace Drupal\webform_summary\Service;
 
 use Drupal\webform\WebformSubmissionExporter;
 use Drupal\Core\Mail\MailmanagerInterface;
+use Drupal\user\Entity\User;
 use Drupal\webform\Entity\Webform;
 use Drupal\webform\Entity\WebformSubmission;
 
@@ -197,6 +198,7 @@ class Mailer
       $this->submissionExporter->setWebform($webform);
       $this->submissionExporter->setExporter($options);
       $query = $this->submissionExporter->getQuery();
+      $query->addMetaData('account', User::load(1));
       $sids = $query->execute();
       // Only write and add mail info if there are submissions in range.
       if (count($sids) > 0) {
