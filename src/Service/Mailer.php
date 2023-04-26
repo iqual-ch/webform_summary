@@ -3,6 +3,7 @@
 namespace Drupal\webform_summary\Service;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\webform\WebformSubmissionExporter;
 use Drupal\Core\Mail\MailmanagerInterface;
 use Drupal\user\Entity\User;
@@ -34,6 +35,13 @@ class Mailer {
    * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
   protected $configFactory;
+
+  /**
+   * The logger factory.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   */
+  protected $loggerFactory;
 
   /**
    * The range start date.
@@ -104,7 +112,8 @@ class Mailer {
     return new static(
       $container->get('plugin.manager.mail'),
       $container->get('webform_submission.exporter'),
-      $container->get('config.factory')
+      $container->get('config.factory'),
+      $container->get('logger.factory')
     );
   }
 
@@ -117,11 +126,14 @@ class Mailer {
    *   The submission exporter.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The config factory.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
+   *   The logger factory.
    */
-  public function __construct(MailmanagerInterface $mailManager, WebformSubmissionExporter $submissionExporter, ConfigFactoryInterface $configFactory) {
+  public function __construct(MailmanagerInterface $mailManager, WebformSubmissionExporter $submissionExporter, ConfigFactoryInterface $configFactory, LoggerChannelFactoryInterface $logger_factory) {
     $this->mailManager = $mailManager;
     $this->submissionExporter = $submissionExporter;
     $this->configFactory = $configFactory;
+    $this->loggerFactory = $logger_factory;
     $this->rangeStart = (new \DateTime('today'));
     $this->rangeEnd = (new \DateTime('today'));
   }
@@ -312,14 +324,14 @@ class Mailer {
       if (!empty($params['attachments'])) {
         $fileList = implode(', ', array_column($files, 'name'));
         if ($this->mailManager->mail('webform_summary', 'webform_summary_csv', $recipient, 'en', $params)) {
-          \Drupal::logger('webform_summary')->notice('Sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
+          $this->loggerFactory->get('webform_summary')->notice('Sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
         }
         else {
-          \Drupal::logger('webform_summary')->warn('Could not sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
+          $this->loggerFactory->get('webform_summary')->warning('Could not sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
         }
       }
       else {
-        \Drupal::logger('webform_summary')->notice('Did not sent webform summaries to ' . $recipient . '. (no attachments)');
+        $this->loggerFactory->get('webform_summary')->notice('Did not sent webform summaries to ' . $recipient . '. (no attachments)');
       }
     }
   }
