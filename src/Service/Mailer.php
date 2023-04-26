@@ -2,6 +2,7 @@
 
 namespace Drupal\webform_summary\Service;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\webform\WebformSubmissionExporter;
 use Drupal\Core\Mail\MailmanagerInterface;
 use Drupal\user\Entity\User;
@@ -26,6 +27,13 @@ class Mailer {
    * @var \Drupal\webform\WebformSubmissionExporter
    */
   protected $submissionExporter = NULL;
+
+  /**
+   * The configuration factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
 
   /**
    * The range start date.
@@ -95,7 +103,8 @@ class Mailer {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('plugin.manager.mail'),
-      $container->get('webform_submission.exporter')
+      $container->get('webform_submission.exporter'),
+      $container->get('config.factory')
     );
   }
 
@@ -106,10 +115,13 @@ class Mailer {
    *   The mail manager.
    * @param \Drupal\webform\WebformSubmissionExporter $submissionExporter
    *   The submission exporter.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The config factory.
    */
-  public function __construct(MailmanagerInterface $mailManager, WebformSubmissionExporter $submissionExporter) {
+  public function __construct(MailmanagerInterface $mailManager, WebformSubmissionExporter $submissionExporter, ConfigFactoryInterface $configFactory) {
     $this->mailManager = $mailManager;
     $this->submissionExporter = $submissionExporter;
+    $this->configFactory = $configFactory;
     $this->rangeStart = (new \DateTime('today'));
     $this->rangeEnd = (new \DateTime('today'));
   }
@@ -190,7 +202,7 @@ class Mailer {
     $options['excluded_columns'] = $this->excludedColumns;
     $options['destination'] = 'webform_submissions_export';
     $mails = [];
-    $defaultMail = \Drupal::config('webform_summary.settings')->get('webform_submissions_email');
+    $defaultMail = $this->configFactory->get('webform_summary.settings')->get('webform_submissions_email');
     $useFallback = $this->useFallback;
     if ($useFallback && !empty($defaultMail)) {
       $mails = [$defaultMail => []];
@@ -293,7 +305,7 @@ class Mailer {
           ];
         }
       }
-      $mailerDisabled = \Drupal::config('webform_summary.settings')->get('webform_submissions_disable');
+      $mailerDisabled = $this->configFactory->get('webform_summary.settings')->get('webform_submissions_disable');
       if ($mailerDisabled) {
         return;
       }
