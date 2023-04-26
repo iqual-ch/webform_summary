@@ -2,6 +2,7 @@
 
 /**
  * @file
+ * Contains webform_summary.module.
  */
 
 use Drupal\Core\Datetime\DrupalDateTime;
@@ -83,6 +84,7 @@ function webform_summary_webform_update(Webform $entity) {
  * a closing date after yesterday.
  *
  * @return string[]
+ *   The return string array.
  */
 function _webform_summary_collect_open_webforms_ids() {
   $date = new DrupalDateTime('1 day ago');
@@ -99,6 +101,7 @@ function _webform_summary_collect_open_webforms_ids() {
  * Send the data for the given webforms.
  *
  * @param array $webformIds
+ *   The return webform ids array.
  */
 function _webform_summary_send_data(array $webformIds) {
   $startDate = new DateTime('1 year ago');

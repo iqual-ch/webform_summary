@@ -35,7 +35,10 @@ class ConfigurationForm extends ConfigFormBase {
       '#type' => 'email',
       '#description' => $this->t('Email from which the webform submissions are sent.'),
       '#required' => TRUE,
-      '#element_validate' => ['::validateReturnPath', ['\\' . Email::class, 'validateEmail']],
+      '#element_validate' => [
+        '::validateReturnPath',
+        [Email::class, 'validateEmail'],
+      ],
       '#default_value' => $config->get('webform_submissions_sender'),
     ];
     $form['webform_submissions_subject'] = [
@@ -57,7 +60,10 @@ class ConfigurationForm extends ConfigFormBase {
       '#type' => 'email',
       '#description' => $this->t('Fallback email to which webform submissions without handler should be sent. No fallback is sent when not set.'),
       '#required' => FALSE,
-      '#element_validate' => ['::validateReturnPath', ['\\' . Email::class, 'validateEmail']],
+      '#element_validate' => [
+        '::validateReturnPath',
+        [Email::class, 'validateEmail'],
+      ],
       '#default_value' => $config->get('webform_submissions_email'),
     ];
     $form['webform_close_send_data'] = [
