@@ -55,12 +55,22 @@ class Mailer {
    */
   protected $useFallback = TRUE;
 
+  /**
+   * Excluded Columns.
+   *
+   * @var array
+   */
   protected $excludedColumns = [
     'uuid' => 'uuid',
     'token' => 'token',
     'webform_id' => 'webform_id',
   ];
 
+  /**
+   * Meta Columns.
+   *
+   * @var array
+   */
   protected $metaColumns = [
     'serial' => 'serial',
     'sid' => 'sid',
@@ -93,7 +103,9 @@ class Mailer {
    * Construct a new WebformSummaryMailer.
    *
    * @param \Drupal\Core\Mail\MailmanagerInterface $mailManager
+   *   The mail manager.
    * @param \Drupal\webform\WebformSubmissionExporter $submissionExporter
+   *   The submission exporter.
    */
   public function __construct(MailmanagerInterface $mailManager, WebformSubmissionExporter $submissionExporter) {
     $this->mailManager = $mailManager;
@@ -106,6 +118,7 @@ class Mailer {
    * Set the range start date.
    *
    * @param array $webformIds
+   *   The webform ids array.
    */
   public function setWebformIds(array $webformIds = NULL) {
     $this->webformIds = $webformIds;
@@ -115,6 +128,7 @@ class Mailer {
    * Set the range start date.
    *
    * @param \DateTime $startDate
+   *   The start date.
    */
   public function setStartDate(\DateTime $startDate) {
     $this->rangeStart = $startDate;
@@ -124,6 +138,7 @@ class Mailer {
    * Set the range end date.
    *
    * @param \DateTime $endDate
+   *   The end date.
    */
   public function setEndDate(\DateTime $endDate) {
     $this->rangeEnd = $endDate;
@@ -140,9 +155,10 @@ class Mailer {
   }
 
   /**
-   * Set the range start date.
+   * Set the excluded columns.
    *
-   * @param \DateTime $startDate
+   * @param array $excludedColumns
+   *   The excluded columns.
    */
   public function setExcludedColums(array $excludedColumns) {
     $this->excludedColumns += $excludedColumns;
@@ -183,7 +199,8 @@ class Mailer {
       $useFallback = FALSE;
     }
 
-    // Loop through webforms, collect submissions, write files and collect mail info.
+    // Loop through webforms, collect submissions, write files and collect
+    // mail info.
     foreach ($webforms as $webform) {
       $webformSubmissions = NULL;
       $this->submissionExporter->setWebform($webform);
@@ -193,7 +210,8 @@ class Mailer {
       $sids = $query->execute();
       // Only write and add mail info if there are submissions in range.
       if ((is_countable($sids) ? count($sids) : 0) > 0) {
-        // If there are summary handlers on the webform, use the email address from the handler.
+        // If there are summary handlers on the webform, use the email address
+        // from the handler.
         $handlers = $webform->getHandlers();
         $fallback = TRUE;
         foreach ($handlers as $handler) {
@@ -231,14 +249,16 @@ class Mailer {
   }
 
   /**
-   * Undocumented function.
+   * Write file.
    *
-   * @param [type] $webform
-   * @param [type] $webformSubmissions
-   * @param [type] $options
-   * @param [type] $email
-   *
-   * @return void
+   * @param mixed $webform
+   *   The webform.
+   * @param mixed $webformSubmissions
+   *   The webform submissions.
+   * @param mixed $options
+   *   The options.
+   * @param mixed $email
+   *   The email.
    */
   protected function writeFile($webform, $webformSubmissions, $options, $email) {
     $file = $webform->id() . '.csv';
@@ -260,7 +280,7 @@ class Mailer {
    * @param array $mails
    *   The mail info.
    */
-  protected function sendMails($mails) {
+  protected function sendMails(array $mails) {
     foreach ($mails as $recipient => $files) {
       $params = ['attachments' => [], 'subject' => 'Webform summary'];
       foreach ($files as $delta => $fileInfo) {
@@ -295,7 +315,7 @@ class Mailer {
   /**
    * Clean up files in tmp.
    *
-   * @param array $webforms
+   * @param array $mails
    *   The webforms for which to clean the files up.
    */
   protected function cleanup(array $mails) {
@@ -309,7 +329,7 @@ class Mailer {
   }
 
   /**
-   *
+   * Get Excluded Columns.
    */
   protected function getExcludedColumns($webform, $handlerConfiguration) {
     $excludedColumns = $this->excludedColumns + $handlerConfiguration['settings']['excluded_elements'];
