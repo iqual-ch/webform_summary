@@ -2,6 +2,7 @@
 
 /**
  * @file
+ * Contains webform_summary.module.
  */
 
 use Drupal\Core\Datetime\DrupalDateTime;
@@ -10,11 +11,10 @@ use Drupal\webform\Entity\Webform;
 
 /**
  * Implements hook_cron().
- * 
+ *
  * Run the webform summary mailer once per day.
  */
-function webform_summary_cron()
-{
+function webform_summary_cron() {
   $mailerDisabled = \Drupal::config('webform_summary.settings')->get('webform_submissions_disable');
   if ($mailerDisabled) {
     return;
@@ -34,11 +34,10 @@ function webform_summary_cron()
 
 /**
  * Implements hook_mail().
- * 
+ *
  * Adjust the mail being send.
  */
-function webform_summary_mail($key, &$message, $params)
-{
+function webform_summary_mail($key, &$message, $params) {
   switch ($key) {
     case "webform_summary_csv":
       $settings = \Drupal::config('webform_summary.settings');
@@ -56,11 +55,10 @@ function webform_summary_mail($key, &$message, $params)
 
 /**
  * Implements hook_ENTITY_TYPE_delete().
- * 
+ *
  * Send webform data on delete.
  */
-function webform_summary_webform_delete(Webform $entity)
-{
+function webform_summary_webform_delete(Webform $entity) {
   $sendOnCloseEnabled = \Drupal::config('webform_summary.settings')->get('webform_close_send_data');
   if ($sendOnCloseEnabled && $entity->status()) {
     _webform_summary_send_data([$entity->id()]);
@@ -69,11 +67,10 @@ function webform_summary_webform_delete(Webform $entity)
 
 /**
  * Implements hook_ENTITY_TYPE_update().
- * 
+ *
  * Send webform data on archive or manual close.
  */
-function webform_summary_webform_update(Webform $entity)
-{
+function webform_summary_webform_update(Webform $entity) {
   $sendOnCloseEnabled = \Drupal::config('webform_summary.settings')->get('webform_close_send_data');
   if ($sendOnCloseEnabled && $entity->original->status() && !$entity->status()) {
     _webform_summary_send_data([$entity->id()]);
@@ -82,14 +79,14 @@ function webform_summary_webform_update(Webform $entity)
 
 /**
  * Get open webforms.
- * 
- * Collects all open webforms or scheduled webforms with 
+ *
+ * Collects all open webforms or scheduled webforms with
  * a closing date after yesterday.
  *
  * @return string[]
+ *   The return string array.
  */
-function _webform_summary_collect_open_webforms_ids()
-{
+function _webform_summary_collect_open_webforms_ids() {
   $date = new DrupalDateTime('1 day ago');
   // Collect all non-closed (open or scheduled) webforms.
   $query = \Drupal::entityQuery('webform')
@@ -104,9 +101,9 @@ function _webform_summary_collect_open_webforms_ids()
  * Send the data for the given webforms.
  *
  * @param array $webformIds
+ *   The return webform ids array.
  */
-function _webform_summary_send_data(array $webformIds)
-{
+function _webform_summary_send_data(array $webformIds) {
   $startDate = new DateTime('1 year ago');
   $endDate = new DateTime();
   \Drupal::logger('webform_summary')->notice('Sending webform summaries between ' . $startDate->format('Y/m/d') . ' and  ' . $endDate->format('Y/m/d'));

@@ -2,6 +2,8 @@
 
 namespace Drupal\webform_summary\Service;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\webform\WebformSubmissionExporter;
 use Drupal\Core\Mail\MailmanagerInterface;
 use Drupal\user\Entity\User;
@@ -11,8 +13,7 @@ use Drupal\webform\Entity\WebformSubmission;
 /**
  * This service allows to collect and send submissions of webforms via mail.
  */
-class Mailer
-{
+class Mailer {
 
   /**
    * The mail manager.
@@ -27,6 +28,20 @@ class Mailer
    * @var \Drupal\webform\WebformSubmissionExporter
    */
   protected $submissionExporter = NULL;
+
+  /**
+   * The configuration factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * The logger factory.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   */
+  protected $loggerFactory;
 
   /**
    * The range start date.
@@ -56,12 +71,22 @@ class Mailer
    */
   protected $useFallback = TRUE;
 
+  /**
+   * Excluded Columns.
+   *
+   * @var array
+   */
   protected $excludedColumns = [
     'uuid' => 'uuid',
     'token' => 'token',
     'webform_id' => 'webform_id',
   ];
 
+  /**
+   * Meta Columns.
+   *
+   * @var array
+   */
   protected $metaColumns = [
     'serial' => 'serial',
     'sid' => 'sid',
@@ -83,11 +108,12 @@ class Mailer
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container)
-  {
+  public static function create(ContainerInterface $container) {
     return new static(
       $container->get('plugin.manager.mail'),
-      $container->get('webform_submission.exporter')
+      $container->get('webform_submission.exporter'),
+      $container->get('config.factory'),
+      $container->get('logger.factory')
     );
   }
 
@@ -95,12 +121,19 @@ class Mailer
    * Construct a new WebformSummaryMailer.
    *
    * @param \Drupal\Core\Mail\MailmanagerInterface $mailManager
+   *   The mail manager.
    * @param \Drupal\webform\WebformSubmissionExporter $submissionExporter
+   *   The submission exporter.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The config factory.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
+   *   The logger factory.
    */
-  public function __construct(MailmanagerInterface $mailManager, WebformSubmissionExporter $submissionExporter)
-  {
+  public function __construct(MailmanagerInterface $mailManager, WebformSubmissionExporter $submissionExporter, ConfigFactoryInterface $configFactory, LoggerChannelFactoryInterface $logger_factory) {
     $this->mailManager = $mailManager;
     $this->submissionExporter = $submissionExporter;
+    $this->configFactory = $configFactory;
+    $this->loggerFactory = $logger_factory;
     $this->rangeStart = (new \DateTime('today'));
     $this->rangeEnd = (new \DateTime('today'));
   }
@@ -109,9 +142,9 @@ class Mailer
    * Set the range start date.
    *
    * @param array $webformIds
+   *   The webform ids array.
    */
-  public function setWebformIds(array $webformIds = NULL)
-  {
+  public function setWebformIds(array $webformIds = NULL) {
     $this->webformIds = $webformIds;
   }
 
@@ -119,9 +152,9 @@ class Mailer
    * Set the range start date.
    *
    * @param \DateTime $startDate
+   *   The start date.
    */
-  public function setStartDate(\DateTime $startDate)
-  {
+  public function setStartDate(\DateTime $startDate) {
     $this->rangeStart = $startDate;
   }
 
@@ -129,9 +162,9 @@ class Mailer
    * Set the range end date.
    *
    * @param \DateTime $endDate
+   *   The end date.
    */
-  public function setEndDate(\DateTime $endDate)
-  {
+  public function setEndDate(\DateTime $endDate) {
     $this->rangeEnd = $endDate;
   }
 
@@ -141,26 +174,24 @@ class Mailer
    * @param bool $useFallback
    *   A boolean to indicate whether to use the fallback.
    */
-  public function useFallback($useFallback = TRUE)
-  {
+  public function useFallback($useFallback = TRUE) {
     $this->useFallback = $useFallback;
   }
 
   /**
-   * Set the range start date.
+   * Set the excluded columns.
    *
-   * @param \DateTime $startDate
+   * @param array $excludedColumns
+   *   The excluded columns.
    */
-  public function setExcludedColums(array $excludedColumns)
-  {
+  public function setExcludedColums(array $excludedColumns) {
     $this->excludedColumns += $excludedColumns;
   }
 
   /**
    * Run the mailing.
    */
-  public function run()
-  {
+  public function run() {
     $webforms = Webform::loadMultiple($this->webformIds);
     $mails = $this->collectFiles($webforms);
     $this->sendMails($mails);
@@ -173,8 +204,7 @@ class Mailer
    * @param array $webforms
    *   The webforms to collect the entries from.
    */
-  protected function collectFiles(array $webforms)
-  {
+  protected function collectFiles(array $webforms) {
     // Setup options.
     $options = $this->submissionExporter->getDefaultExportOptions();
     $options['delimiter'] = ';';
@@ -184,15 +214,17 @@ class Mailer
     $options['excluded_columns'] = $this->excludedColumns;
     $options['destination'] = 'webform_submissions_export';
     $mails = [];
-    $defaultMail = \Drupal::config('webform_summary.settings')->get('webform_submissions_email');
+    $defaultMail = $this->configFactory->get('webform_summary.settings')->get('webform_submissions_email');
     $useFallback = $this->useFallback;
     if ($useFallback && !empty($defaultMail)) {
       $mails = [$defaultMail => []];
-    } else {
+    }
+    else {
       $useFallback = FALSE;
     }
 
-    // Loop through webforms, collect submissions, write files and collect mail info.
+    // Loop through webforms, collect submissions, write files and collect
+    // mail info.
     foreach ($webforms as $webform) {
       $webformSubmissions = NULL;
       $this->submissionExporter->setWebform($webform);
@@ -201,8 +233,9 @@ class Mailer
       $query->addMetaData('account', User::load(1));
       $sids = $query->execute();
       // Only write and add mail info if there are submissions in range.
-      if (count($sids) > 0) {
-        // If there are summary handlers on the webform, use the email address from the handler.
+      if ((is_countable($sids) ? count($sids) : 0) > 0) {
+        // If there are summary handlers on the webform, use the email address
+        // from the handler.
         $handlers = $webform->getHandlers();
         $fallback = TRUE;
         foreach ($handlers as $handler) {
@@ -240,17 +273,18 @@ class Mailer
   }
 
   /**
-   * Undocumented function.
+   * Write file.
    *
-   * @param [type] $webform
-   * @param [type] $webformSubmissions
-   * @param [type] $options
-   * @param [type] $email
-   *
-   * @return void
+   * @param mixed $webform
+   *   The webform.
+   * @param mixed $webformSubmissions
+   *   The webform submissions.
+   * @param mixed $options
+   *   The options.
+   * @param mixed $email
+   *   The email.
    */
-  protected function writeFile($webform, $webformSubmissions, $options, $email)
-  {
+  protected function writeFile($webform, $webformSubmissions, $options, $email) {
     $file = $webform->id() . '.csv';
     $this->submissionExporter->setExporter($options);
     $this->submissionExporter->writeHeader();
@@ -270,8 +304,7 @@ class Mailer
    * @param array $mails
    *   The mail info.
    */
-  protected function sendMails($mails)
-  {
+  protected function sendMails(array $mails) {
     foreach ($mails as $recipient => $files) {
       $params = ['attachments' => [], 'subject' => 'Webform summary'];
       foreach ($files as $delta => $fileInfo) {
@@ -284,19 +317,21 @@ class Mailer
           ];
         }
       }
-      $mailerDisabled = \Drupal::config('webform_summary.settings')->get('webform_submissions_disable');
+      $mailerDisabled = $this->configFactory->get('webform_summary.settings')->get('webform_submissions_disable');
       if ($mailerDisabled) {
         return;
       }
       if (!empty($params['attachments'])) {
         $fileList = implode(', ', array_column($files, 'name'));
         if ($this->mailManager->mail('webform_summary', 'webform_summary_csv', $recipient, 'en', $params)) {
-          \Drupal::logger('webform_summary')->notice('Sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
-        } else {
-          \Drupal::logger('webform_summary')->warn('Could not sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
+          $this->loggerFactory->get('webform_summary')->notice('Sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
         }
-      } else {
-        \Drupal::logger('webform_summary')->notice('Did not sent webform summaries to ' . $recipient . '. (no attachments)');
+        else {
+          $this->loggerFactory->get('webform_summary')->warning('Could not sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
+        }
+      }
+      else {
+        $this->loggerFactory->get('webform_summary')->notice('Did not sent webform summaries to ' . $recipient . '. (no attachments)');
       }
     }
   }
@@ -304,11 +339,10 @@ class Mailer
   /**
    * Clean up files in tmp.
    *
-   * @param array $webforms
+   * @param array $mails
    *   The webforms for which to clean the files up.
    */
-  protected function cleanup(array $mails)
-  {
+  protected function cleanup(array $mails) {
     foreach ($mails as $recipient => $files) {
       foreach ($files as $delta => $fileInfo) {
         if (file_exists($fileInfo['path'])) {
@@ -319,14 +353,14 @@ class Mailer
   }
 
   /**
-   *
+   * Get Excluded Columns.
    */
-  protected function getExcludedColumns($webform, $handlerConfiguration)
-  {
+  protected function getExcludedColumns($webform, $handlerConfiguration) {
     $excludedColumns = $this->excludedColumns + $handlerConfiguration['settings']['excluded_elements'];
     if (!$handlerConfiguration['settings']['metadata']) {
       $excludedColumns += $this->metaColumns;
     }
     return $excludedColumns;
   }
+
 }

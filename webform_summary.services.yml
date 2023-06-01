@@ -1,4 +1,4 @@
 services:
   webform_summary.mailer:
     class: Drupal\webform_summary\Service\Mailer
-    arguments: ['@plugin.manager.mail', '@webform_submission.exporter']
+    arguments: ['@plugin.manager.mail', '@webform_submission.exporter', '@config.factory', '@logger.factory']
