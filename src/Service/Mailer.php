@@ -4,11 +4,11 @@ namespace Drupal\webform_summary\Service;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
-use Drupal\webform\WebformSubmissionExporter;
 use Drupal\Core\Mail\MailmanagerInterface;
 use Drupal\user\Entity\User;
 use Drupal\webform\Entity\Webform;
 use Drupal\webform\Entity\WebformSubmission;
+use Drupal\webform\WebformSubmissionExporter;
 
 /**
  * This service allows to collect and send submissions of webforms via mail.
