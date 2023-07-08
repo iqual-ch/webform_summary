@@ -2,7 +2,7 @@ name: Webform summary
 description: This modules provides methods to deliver webform summaries.
 package: Custom
 type: module
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^9.5 || ^10
 
 dependencies:
   - webform:webform
