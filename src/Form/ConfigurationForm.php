@@ -4,9 +4,9 @@ namespace Drupal\webform_summary\Form;
 
 use Drupal\Component\Utility\EmailValidatorInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Render\Element\Email;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element\Email;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
