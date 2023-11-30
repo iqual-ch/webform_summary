@@ -90,6 +90,7 @@ function _webform_summary_collect_open_webforms_ids() {
   $date = new DrupalDateTime('1 day ago');
   // Collect all non-closed (open or scheduled) webforms.
   $query = \Drupal::entityQuery('webform')
+    ->accessCheck()
     ->condition('status', 'closed', '<>');
   $group = $query->orConditionGroup()
     ->condition('status', 'open')
