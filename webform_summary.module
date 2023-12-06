@@ -105,6 +105,10 @@ function _webform_summary_collect_open_webforms_ids() {
  *   The return webform ids array.
  */
 function _webform_summary_send_data(array $webformIds) {
+  $mailerDisabled = \Drupal::config('webform_summary.settings')->get('webform_submissions_disable');
+  if ($mailerDisabled) {
+    return;
+  }
   $startDate = new DateTime('1 year ago');
   $endDate = new DateTime();
   \Drupal::logger('webform_summary')->notice('Sending webform summaries between ' . $startDate->format('Y/m/d') . ' and  ' . $endDate->format('Y/m/d'));
