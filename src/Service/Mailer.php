@@ -3,45 +3,16 @@
 namespace Drupal\webform_summary\Service;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Mail\MailmanagerInterface;
-use Drupal\user\Entity\User;
-use Drupal\webform\Entity\Webform;
-use Drupal\webform\Entity\WebformSubmission;
 use Drupal\webform\WebformSubmissionExporter;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * This service allows to collect and send submissions of webforms via mail.
  */
 class Mailer {
-
-  /**
-   * The mail manager.
-   *
-   * @var \Drupal\Core\Mail\MailmanagerInterface
-   */
-  protected $mailManager = NULL;
-
-  /**
-   * The webform submission exporter.
-   *
-   * @var \Drupal\webform\WebformSubmissionExporter
-   */
-  protected $submissionExporter = NULL;
-
-  /**
-   * The configuration factory.
-   *
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected $configFactory;
-
-  /**
-   * The logger factory.
-   *
-   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
-   */
-  protected $loggerFactory;
 
   /**
    * The range start date.
@@ -113,7 +84,8 @@ class Mailer {
       $container->get('plugin.manager.mail'),
       $container->get('webform_submission.exporter'),
       $container->get('config.factory'),
-      $container->get('logger.factory')
+      $container->get('logger.factory'),
+      $container->get('entity_type.manager'),
     );
   }
 
@@ -126,14 +98,18 @@ class Mailer {
    *   The submission exporter.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The config factory.
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   The logger factory.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
    */
-  public function __construct(MailmanagerInterface $mailManager, WebformSubmissionExporter $submissionExporter, ConfigFactoryInterface $configFactory, LoggerChannelFactoryInterface $logger_factory) {
-    $this->mailManager = $mailManager;
-    $this->submissionExporter = $submissionExporter;
-    $this->configFactory = $configFactory;
-    $this->loggerFactory = $logger_factory;
+  public function __construct(
+    protected MailmanagerInterface $mailManager,
+    protected WebformSubmissionExporter $submissionExporter,
+    protected ConfigFactoryInterface $configFactory,
+    protected LoggerChannelFactoryInterface $loggerFactory,
+    protected EntityTypeManagerInterface $entityTypeManager,
+  ) {
     $this->rangeStart = (new \DateTime('today'));
     $this->rangeEnd = (new \DateTime('today'));
   }
@@ -144,7 +120,7 @@ class Mailer {
    * @param array $webformIds
    *   The webform ids array.
    */
-  public function setWebformIds(array $webformIds = NULL) {
+  public function setWebformIds(?array $webformIds = NULL) {
     $this->webformIds = $webformIds;
   }
 
@@ -192,7 +168,7 @@ class Mailer {
    * Run the mailing.
    */
   public function run() {
-    $webforms = Webform::loadMultiple($this->webformIds);
+    $webforms = $this->entityTypeManager->getStorage('webform')->loadMultiple($this->webformIds);
     $mails = $this->collectFiles($webforms);
     $this->sendMails($mails);
     $this->cleanup($mails);
@@ -230,7 +206,7 @@ class Mailer {
       $this->submissionExporter->setWebform($webform);
       $this->submissionExporter->setExporter($options);
       $query = $this->submissionExporter->getQuery();
-      $query->addMetaData('account', User::load(1));
+      $query->addMetaData('account', $this->entityTypeManager->getStorage('user')->load(1));
       $sids = $query->execute();
       // Only write and add mail info if there are submissions in range.
       if ((is_countable($sids) ? count($sids) : 0) > 0) {
@@ -245,7 +221,7 @@ class Mailer {
               $options['excluded_columns'] = $this->getExcludedColumns($webform, $configuration);
               $email = $configuration['settings']['recipient_mail'];
               if ($webformSubmissions == NULL) {
-                $webformSubmissions = WebformSubmission::loadMultiple($sids);
+                $webformSubmissions = $this->entityTypeManager->getStorage('webform_submission')->loadMultiple($sids);
               }
               $entry = $this->writeFile($webform, $webformSubmissions, $options, $configuration['settings']['recipient_mail']);
               if ($entry != NULL) {
@@ -260,7 +236,7 @@ class Mailer {
         // Fall back to the default email if there is no handler.
         if ($useFallback && $fallback) {
           if ($webformSubmissions == NULL) {
-            $webformSubmissions = WebformSubmission::loadMultiple($sids);
+            $webformSubmissions = $this->entityTypeManager->getStorage('webform_submission')->loadMultiple($sids);
           }
           $entry = $this->writeFile($webform, $webformSubmissions, $options, $defaultMail);
           if ($entry != NULL) {
@@ -307,7 +283,7 @@ class Mailer {
   protected function sendMails(array $mails) {
     foreach ($mails as $recipient => $files) {
       $params = ['attachments' => [], 'subject' => 'Webform summary'];
-      foreach ($files as $delta => $fileInfo) {
+      foreach ($files as $fileInfo) {
         $fileContent = iconv("UTF-8", "ISO-8859-1//IGNORE", file_get_contents($fileInfo['path']));
         if (!empty($fileContent)) {
           $params['attachments'][] = [
@@ -343,8 +319,8 @@ class Mailer {
    *   The webforms for which to clean the files up.
    */
   protected function cleanup(array $mails) {
-    foreach ($mails as $recipient => $files) {
-      foreach ($files as $delta => $fileInfo) {
+    foreach ($mails as $files) {
+      foreach ($files as $fileInfo) {
         if (file_exists($fileInfo['path'])) {
           unlink($fileInfo['path']);
         }

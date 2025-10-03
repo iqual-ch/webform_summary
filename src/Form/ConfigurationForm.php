@@ -141,7 +141,7 @@ class ConfigurationForm extends ConfigFormBase {
    */
   public function validateReturnPath(array &$element, FormStateInterface $form_state, array &$complete_form) {
     if (!$this->emailValidator->isValid($form_state->getValue('webform_submissions_sender'))) {
-      $form_state->setErrorByName('webform_submissions_sender', t('The email address %mail is not valid.', ['%mail' => $value]));
+      $form_state->setErrorByName('webform_submissions_sender', $this->t('The email address %mail is not valid.', ['%mail' => $value]));
     }
   }
 
