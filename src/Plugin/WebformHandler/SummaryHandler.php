@@ -4,7 +4,9 @@ namespace Drupal\webform_summary\Plugin\WebformHandler;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\webform\Plugin\WebformHandlerBase;
+use Drupal\webform\Utility\WebformOptionsHelper;
 use Drupal\webform\WebformSubmissionInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Mail summary email handler.
@@ -22,13 +24,35 @@ use Drupal\webform\WebformSubmissionInterface;
 class SummaryHandler extends WebformHandlerBase {
 
   /**
+   * The mail validator service.
+   *
+   * @var \Drupal\Component\Utility\EmailValidatorInterface
+   */
+  protected $emailValidator;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    $instance = new static($configuration, $plugin_id, $plugin_definition);
+
+    $instance->loggerFactory = $container->get('logger.factory');
+    $instance->configFactory = $container->get('config.factory');
+    $instance->renderer = $container->get('renderer');
+    $instance->entityTypeManager = $container->get('entity_type.manager');
+    $instance->conditionsValidator = $container->get('webform_submission.conditions_validator');
+    $instance->tokenManager = $container->get('webform.token_manager');
+    $instance->emailValidator = $container->get('email.validator');
+
+    $instance->setConfiguration($configuration);
+
+    return $instance;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function getSummary() {
-    // Return [
-    //   '#settings' => ['settings' => [$this->t('Recipient email address') => $this->configuration['recipient_mail']]],
-    //   '#theme' => 'webform_handler_settings_summary',
-    // ] + parent::getSummary();
     return [
       'message' => [
         '#markup' => $this->configuration['recipient_mail'],
@@ -48,37 +72,13 @@ class SummaryHandler extends WebformHandlerBase {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function setConfiguration(array $configuration) {
-    parent::setConfiguration($configuration);
-
-    // Make sure 'default' is converted to '_default'.
-    // @see https://www.drupal.org/project/webform/issues/2980470
-    // @see webform_update_8131()
-    // @todo Webform 8.x-6.x: Remove the below code.
-    $default_configuration = $this->defaultConfiguration();
-    foreach ($this->configuration as $key => $value) {
-      if (
-        $value === 'default'
-        && isset($default_configuration[$key])
-        && $default_configuration[$key] === static::DEFAULT_VALUE
-      ) {
-        $this->configuration[$key] = static::DEFAULT_VALUE;
-      }
-    }
-
-    return $this;
-  }
-
-  /**
    * {@inheritDoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form['general'] = [
       '#type' => 'details',
       '#title' => $this->t('General settings'),
-      '#description' => $this->t(''),
+      '#description' => $this->t('General settings for the email summary handler.'),
       '#open' => TRUE,
     ];
     $form['general']['recipient_mail'] = [
@@ -122,8 +122,8 @@ class SummaryHandler extends WebformHandlerBase {
     if ($form_state->hasAnyErrors()) {
       return;
     }
-    if (!\Drupal::service('email.validator')->isValid($form_state->getValue('recipient_mail'))) {
-      $form_state->setErrorByName('recipient_mail', t('The email address %mail is not valid.', ['%mail' => $value]));
+    if (!$this->emailValidator->isValid($form_state->getValue('recipient_mail'))) {
+      $form_state->setErrorByName('recipient_mail', $this->t('The email address %mail is not valid.', ['%mail' => $form_state->getValue('recipient_mail')]));
     }
   }
 
