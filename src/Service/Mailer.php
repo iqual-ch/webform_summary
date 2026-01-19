@@ -306,6 +306,7 @@ class Mailer {
         else {
           $this->loggerFactory->get('webform_summary')->warning('Could not sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
           $this->writeLog('Could not sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
+        } 
       }
       else {
         $this->loggerFactory->get('webform_summary')->notice('Did not sent webform summaries to ' . $recipient . '. (no attachments)');
