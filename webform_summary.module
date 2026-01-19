@@ -16,7 +16,7 @@ use Drupal\webform\Entity\Webform;
  */
 function webform_summary_cron() {
   $mailerDisabled = \Drupal::config('webform_summary.settings')->get('webform_submissions_disable');
-  if ($mailerDisabled) {
+  if ($mailerDisabled === TRUE) {
     return;
   }
   $lastExecution = (int) \Drupal::state()->get('webform_summary.last_execution');
@@ -106,7 +106,7 @@ function _webform_summary_collect_open_webforms_ids() {
  */
 function _webform_summary_send_data(array $webformIds) {
   $mailerDisabled = \Drupal::config('webform_summary.settings')->get('webform_submissions_disable');
-  if ($mailerDisabled) {
+  if ($mailerDisabled === TRUE) {
     return;
   }
   $startDate = new DateTime('1 year ago');
