@@ -295,6 +295,7 @@ class Mailer {
       }
       $mailerDisabled = $this->configFactory->get('webform_summary.settings')->get('webform_submissions_disable');
       if ($mailerDisabled) {
+        $this->loggerFactory->get('webform_summary')->notice('mailer is disabled. Did not send webform summaries to ' . $recipient . '.');
         return;
       }
       if (!empty($params['attachments'])) {
