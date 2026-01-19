@@ -301,13 +301,15 @@ class Mailer {
         $fileList = implode(', ', array_column($files, 'name'));
         if ($this->mailManager->mail('webform_summary', 'webform_summary_csv', $recipient, 'en', $params)) {
           $this->loggerFactory->get('webform_summary')->notice('Sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
-        }
+          $this->writeLog('Sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
+          }
         else {
           $this->loggerFactory->get('webform_summary')->warning('Could not sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
-        }
+          $this->writeLog('Could not sent webform summaries to ' . $recipient . '. File list: ' . $fileList);
       }
       else {
         $this->loggerFactory->get('webform_summary')->notice('Did not sent webform summaries to ' . $recipient . '. (no attachments)');
+        $this->writeLog('Did not sent webform summaries to ' . $recipient . '. (no attachments)');
       }
     }
   }
@@ -337,6 +339,21 @@ class Mailer {
       $excludedColumns += $this->metaColumns;
     }
     return $excludedColumns;
+  }
+
+  /**
+   * Write log entry to private file.
+   *
+   * @param string $message
+   *   The log message.
+   */
+  protected function writeLog($message) {
+    $logFile = fopen('private://webform_summary.log', 'a');
+    if ($logFile) {
+      $date = new \DateTime();
+      fwrite($logFile, $date->format('Y-m-d H:i:s') . ' - ' . $message . PHP_EOL);
+      fclose($logFile);
+    }
   }
 
 }
