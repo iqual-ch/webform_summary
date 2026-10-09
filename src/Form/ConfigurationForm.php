@@ -3,7 +3,6 @@
 namespace Drupal\webform_summary\Form;
 
 use Drupal\Component\Utility\EmailValidatorInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element\Email;
@@ -19,29 +18,15 @@ class ConfigurationForm extends ConfigFormBase {
    *
    * @var \Drupal\Component\Utility\EmailValidatorInterface
    */
-  protected $emailValidator;
-
-  /**
-   * Constructs a Drupal\webform_summary\Form\ConfigurationForm object.
-   *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The factory for configuration objects.
-   * @param \Drupal\Component\Utility\EmailValidatorInterface $email_validator
-   *   The email validator.
-   */
-  public function __construct(ConfigFactoryInterface $config_factory, EmailValidatorInterface $email_validator) {
-    parent::__construct($config_factory);
-    $this->emailValidator = $email_validator;
-  }
+  protected EmailValidatorInterface $emailValidator;
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('config.factory'),
-      $container->get('email.validator')
-    );
+    $instance = parent::create($container);
+    $instance->emailValidator = $container->get('email.validator');
+    return $instance;
   }
 
   /**
@@ -103,7 +88,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#title' => $this->t('Send data when closing, deleting or archiving a webform'),
       '#type' => 'checkbox',
       '#description' => $this->t('Will send the data every time a webform is closed or archived or when it is deleted.'),
-      '#required' => TRUE,
+      '#required' => FALSE,
       '#default_value' => $config->get('webform_close_send_data'),
     ];
     $form['webform_submissions_disable'] = [
@@ -137,11 +122,12 @@ class ConfigurationForm extends ConfigFormBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Validates an email address element.
    */
   public function validateReturnPath(array &$element, FormStateInterface $form_state, array &$complete_form) {
-    if (!$this->emailValidator->isValid($form_state->getValue('webform_submissions_sender'))) {
-      $form_state->setErrorByName('webform_submissions_sender', $this->t('The email address %mail is not valid.', ['%mail' => $value]));
+    $value = trim((string) $element['#value']);
+    if ($value !== '' && !$this->emailValidator->isValid($value)) {
+      $form_state->setError($element, $this->t('The email address %mail is not valid.', ['%mail' => $value]));
     }
   }
 
