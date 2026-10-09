@@ -88,7 +88,7 @@ class ConfigurationForm extends ConfigFormBase {
       '#title' => $this->t('Send data when closing, deleting or archiving a webform'),
       '#type' => 'checkbox',
       '#description' => $this->t('Will send the data every time a webform is closed or archived or when it is deleted.'),
-      '#required' => TRUE,
+      '#required' => FALSE,
       '#default_value' => $config->get('webform_close_send_data'),
     ];
     $form['webform_submissions_disable'] = [

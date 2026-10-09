@@ -85,6 +85,24 @@ class ConfigurationFormKernelTest extends KernelTestBase {
   }
 
   /**
+   * Tests that the settings can be saved with all checkboxes unchecked.
+   */
+  public function testSubmitUncheckedCheckboxes(): void {
+    $form_state = $this->buildFormState([
+      'webform_submissions_sender' => 'sender@example.com',
+      // Programmatic submissions uncheck a checkbox with NULL, not 0.
+      'webform_close_send_data' => NULL,
+      'webform_submissions_disable' => NULL,
+    ]);
+    $this->container->get('form_builder')->submitForm(ConfigurationForm::class, $form_state);
+
+    $this->assertSame([], $form_state->getErrors());
+    $config = $this->config('webform_summary.settings');
+    $this->assertFalse($config->get('webform_close_send_data'));
+    $this->assertFalse($config->get('webform_submissions_disable'));
+  }
+
+  /**
    * Builds a form state with valid defaults and the given values.
    *
    * @param array $values
@@ -98,7 +116,7 @@ class ConfigurationFormKernelTest extends KernelTestBase {
       'webform_submissions_subject' => 'Webform summary',
       'webform_submissions_body' => '',
       'webform_close_send_data' => 1,
-      'webform_submissions_disable' => 0,
+      'webform_submissions_disable' => NULL,
       'op' => 'Save',
     ]);
   }
