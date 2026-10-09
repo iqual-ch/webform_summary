@@ -11,9 +11,29 @@ webform_summary.settings:
     webform_submissions_subject:
       type: string
       label: "The webform submission subject."
+    webform_submissions_body:
+      type: text
+      label: "The webform submission body."
     webform_close_send_data:
       type: boolean
       label: "Whether to send data on close/archive/delete."
     webform_submissions_disable:
       type: boolean
       label: "Whether to disable sending emails."
+
+webform.handler.mail_summary_handler:
+  type: mapping
+  label: "Mail summary handler"
+  mapping:
+    recipient_mail:
+      type: email
+      label: "Recipient email address"
+    excluded_elements:
+      type: sequence
+      label: "Excluded elements"
+      sequence:
+        type: string
+        label: "Excluded element"
+    metadata:
+      type: boolean
+      label: "Include metadata"
