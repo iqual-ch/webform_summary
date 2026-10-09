@@ -269,16 +269,25 @@ class Mailer {
     // depends on the webform version and the site's temp path settings.
     $exportFilePath = $this->submissionExporter->getExportFilePath();
     // Make sure the file exists.
-    if (file_exists($exportFilePath)) {
-      $personalFilename = dirname($exportFilePath) . '/' . $webform->id() . '_' . $email . '.csv';
-      rename($exportFilePath, $personalFilename);
-      return ['path' => $personalFilename, 'name' => $file];
+    if (!file_exists($exportFilePath)) {
+      $this->loggerFactory->get('webform_summary')->warning('Could not find the export file @path for webform @webform.', [
+        '@path' => $exportFilePath,
+        '@webform' => $webform->id(),
+      ]);
+      return NULL;
     }
-    $this->loggerFactory->get('webform_summary')->warning('Could not find the export file @path for webform @webform.', [
-      '@path' => $exportFilePath,
-      '@webform' => $webform->id(),
-    ]);
-    return NULL;
+    // Hash the recipient, as email addresses may contain characters that are
+    // not safe in filenames (e.g. "/").
+    $personalFilename = dirname($exportFilePath) . '/' . $webform->id() . '_' . hash('sha256', $email) . '.csv';
+    if (!rename($exportFilePath, $personalFilename)) {
+      $this->loggerFactory->get('webform_summary')->warning('Could not move the export file @path to @destination for webform @webform.', [
+        '@path' => $exportFilePath,
+        '@destination' => $personalFilename,
+        '@webform' => $webform->id(),
+      ]);
+      return NULL;
+    }
+    return ['path' => $personalFilename, 'name' => $file];
   }
 
   /**

@@ -71,11 +71,14 @@ class SummaryMailerKernelTest extends KernelTestBase {
 
   /**
    * Tests that every summary handler recipient gets the CSV attachment.
+   *
+   * One recipient contains a "/", which is valid in an email address but not
+   * in a filename.
    */
   public function testSummaryIsSentToEachHandlerRecipient(): void {
     $webform = $this->createWebform('summary_test', [
       'first@example.com',
-      'second@example.com',
+      'sales/ops@example.com',
     ]);
     $this->createSubmission($webform, 'Alice');
     $this->createSubmission($webform, 'Bob');
@@ -84,7 +87,7 @@ class SummaryMailerKernelTest extends KernelTestBase {
 
     $mails = $this->getMails(['key' => 'webform_summary_csv']);
     $this->assertSame(
-      ['first@example.com', 'second@example.com'],
+      ['first@example.com', 'sales/ops@example.com'],
       $this->sortedRecipients($mails),
     );
     foreach ($mails as $mail) {
